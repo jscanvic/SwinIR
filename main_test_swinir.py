@@ -26,6 +26,7 @@ def main():
                         default='model_zoo/swinir/001_classicalSR_DIV2K_s48w8_SwinIR-M_x2.pth')
     parser.add_argument('--folder_lq', type=str, default=None, help='input low-quality test image folder')
     parser.add_argument('--folder_gt', type=str, default=None, help='input ground-truth test image folder')
+    parser.add_argument('--save_dir', type=str, default=None, help='results folder')
     parser.add_argument('--tile', type=int, default=None, help='Tile size, None for no tile during testing (testing as a whole)')
     parser.add_argument('--tile_overlap', type=int, default=32, help='Overlapping of different tiles')
     args = parser.parse_args()
@@ -47,6 +48,8 @@ def main():
 
     # setup folder and path
     folder, save_dir, border, window_size = setup(args)
+    if args.save_dir is not None:
+        save_dir = args.save_dir
     os.makedirs(save_dir, exist_ok=True)
     test_results = OrderedDict()
     test_results['psnr'] = []
@@ -232,8 +235,12 @@ def get_image_pair(args, path):
     # 001 classical image sr/ 002 lightweight image sr (load lq-gt image pairs)
     if args.task in ['classical_sr', 'lightweight_sr']:
         img_gt = cv2.imread(path, cv2.IMREAD_COLOR).astype(np.float32) / 255.
-        img_lq = cv2.imread(f'{args.folder_lq}/{imgname}x{args.scale}{imgext}', cv2.IMREAD_COLOR).astype(
-            np.float32) / 255.
+        try:
+            img_lq = cv2.imread(f'{args.folder_lq}/{imgname}x{args.scale}{imgext}', cv2.IMREAD_COLOR).astype(
+                np.float32) / 255.
+        except:
+            img_lq = cv2.imread(f'{args.folder_lq}/{imgname}{imgext}', cv2.IMREAD_COLOR).astype(
+                np.float32) / 255.
 
     # 003 real-world image sr (load lq image only)
     elif args.task in ['real_sr']:
